@@ -1,44 +1,7 @@
 #include "planning/grid_map.hpp"
 #include <array>
 #include <iostream>
-
-// main func
-/*
-int main()
-{
-
-    // Given text grid map
-    std::vector<std::string> rows = {"..........", "..####....", "..#...#...", "..#...#...", "..#####...", ".........."};
-
-    // Convert text to grid map (occupancy grid)
-    const GridMap m = make_grid(rows);
-
-    // Convert GridMap back to text and print it
-    print_grid(m);
-
-    // Print size of cells
-    std::cout << "cells:    " << m.cells.size() << "\n";
-
-    // Check neighbors
-    Cell c1{0, 0};
-    std::vector<Cell> N1 = neighbors4(m, c1);
-    std::cout << "n(0,0):    " << N1.size() << "\n";
-
-    Cell c2{2, 1};
-    std::vector<Cell> N2 = neighbors4(m, c2);
-    std::cout << "n(2,1):    " << N2.size() << "\n";
-
-    Cell c3{4, 2};
-    std::vector<Cell> N3 = neighbors4(m, c3);
-    std::cout << "n(4,2):    " << N3.size() << "\n";
-
-    Cell c4{9, 5};
-    std::vector<Cell> N4 = neighbors4(m, c4);
-    std::cout << "n(9,5):    " << N4.size() << "\n";
-
-    return 0;
-}
-*/
+#include <cassert>
 
 namespace planning
 {
@@ -54,6 +17,7 @@ namespace planning
 
         // reserve space
         m.cells.reserve(m.width * m.height);
+        m.cost.reserve(m.width * m.height);
 
         for (int y = 0; y < m.height; y++)
         { // iterate over each row (i = row)
@@ -62,18 +26,22 @@ namespace planning
                 if (rows[y][x] == '.')
                 {
                     m.cells.push_back(0);
+                    m.cost.push_back(1);
+                }
+                else if (rows[y][x] == '~')
+                {
+                    m.cells.push_back(0);
+                    m.cost.push_back(5);
                 }
                 else if (rows[y][x] == '#')
                 {
                     m.cells.push_back(1);
-                }
-                else
-                {
-                    m.cells.push_back(1);
+                    m.cost.push_back(1);
                 }
             }
         }
 
+        assert(m.cells.size() == m.cost.size());
         return m;
     }
 
@@ -89,7 +57,8 @@ namespace planning
                 std::size_t idx{index(m, c)};
                 if (m.cells[idx] == 0)
                 {
-                    std::cout << '.';
+                    if (m.cost[idx] == 1) std::cout << '.';
+                    else if (m.cost[idx] > 1) std::cout << '~';
                 }
                 else
                 {

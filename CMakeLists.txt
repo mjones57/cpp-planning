@@ -12,6 +12,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_library(planning
     src/grid_map.cpp
     src/bfs.cpp
+    src/dijkstra.cpp
 )
 target_include_directories(planning PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_compile_options(planning PRIVATE -Wall -Wextra -Wpedantic)
@@ -23,7 +24,11 @@ if(ENABLE_SANITIZERS)
     target_link_options(planning PUBLIC -fsanitize=address,undefined)
 endif()
 
-# --- the demo executable ---
+# --- the demo executables ---
 add_executable(bfs_demo apps/bfs_demo.cpp)
 target_link_libraries(bfs_demo PRIVATE planning)
 target_compile_options(bfs_demo PRIVATE -Wall -Wextra -Wpedantic)
+
+add_executable(planner_compare apps/planner_compare.cpp)
+target_link_libraries(planner_compare PRIVATE planning)
+target_compile_options(planner_compare PRIVATE -Wall -Wextra -Wpedantic)

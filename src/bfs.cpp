@@ -7,7 +7,7 @@
 namespace planning
 {
     // Custom functions
-    std::vector<Cell> bfs(const GridMap &m, Cell start, Cell goal)
+    std::vector<Cell> bfs(const GridMap &m, Cell start, Cell goal, int& expansions)
     {
 
         // Guard endpoints
@@ -37,6 +37,9 @@ namespace planning
             frontier.pop();
             const std::size_t ci{index(m, current)};
 
+            // Increment expansion count
+            ++expansions;
+
             // early exit condition: reached goal
             if (current.x == goal.x && current.y == goal.y)
             {
@@ -62,26 +65,36 @@ namespace planning
             }
         }
 
+        if (!goal_found) {
+            // Unreachable case
+            std::vector<Cell> empty_path;
+            return empty_path;
+        }
+
+        std::vector<Cell> path {reconstruct(m, parent, goal)};
+        return path;
+    }
+
+
+    std::vector<Cell> reconstruct(const GridMap& m, const std::vector<int>& parent, const Cell& goal)
+    {
         // Reconstructing the path
         std::vector<Cell> path;
 
-        if (goal_found)
+        path.push_back(goal);
+
+        // loop through parent until we hit -1
+        while (parent[index(m, path.back())] != -1)
         {
-            path.push_back(goal);
+            const Cell curr = path.back();
+            const std::size_t curr_index{index(m, curr)};
 
-            // loop through parent until we hit -1
-            while (parent[index(m, path.back())] != -1)
-            {
-                const Cell curr = path.back();
-                const std::size_t curr_index{index(m, curr)};
+            const int parent_index{parent[curr_index]}; // flat index, need to inverse to get parent cell
 
-                const int parent_index{parent[curr_index]}; // flat index, need to inverse to get parent cell
-
-                path.push_back({parent_index % m.width, parent_index / m.width});
-            }
-            std::reverse(path.begin(), path.end());
+            path.push_back({parent_index % m.width, parent_index / m.width});
         }
-
+        std::reverse(path.begin(), path.end());
+        
         return path;
     }
 
@@ -103,7 +116,8 @@ namespace planning
         {
             if (m.cells[i] == 0)
             {
-                canvas.push_back('.');
+                if (m.cost[i] == 1) canvas.push_back('.');
+                else if (m.cost[i] > 1) canvas.push_back('~');
             }
             else
             {

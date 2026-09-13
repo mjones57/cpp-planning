@@ -16,7 +16,8 @@ namespace planning
     {
         int width = 0;
         int height = 0;
-        std::vector<std::uint8_t> cells; // row-major; 0 = free, 1 = obstacle
+        std::vector<std::uint8_t> cells;    // row-major; 0 = free, 1 = obstacle
+        std::vector<int> cost;              // cost to ENTER this cell, >= 1
     };
 
     // function declarations

@@ -4,6 +4,7 @@
 
 namespace planning
 {
-    std::vector<Cell> bfs(const GridMap &m, Cell start, Cell goal);
+    std::vector<Cell> bfs(const GridMap&, Cell, Cell, int&);
     void print_path(const GridMap &m, const std::vector<Cell> &path);
+    std::vector<Cell> reconstruct(const GridMap&, const std::vector<int>&, const Cell&);
 }
