@@ -2,6 +2,7 @@
 #include <array>
 #include <iostream>
 #include <cassert>
+#include <limits>
 
 namespace planning
 {
@@ -40,6 +41,8 @@ namespace planning
                 }
             }
         }
+
+        m.min_cost = min_free_cost(m);
 
         assert(m.cells.size() == m.cost.size());
         return m;
@@ -125,4 +128,21 @@ namespace planning
         return neighbors;
     }
 
+    int min_free_cost(const GridMap& m)
+    {
+        assert(m.cells.size() == m.cost.size());
+        int best{std::numeric_limits<int>::max()};
+
+        // Check minimum from cells, if its 1 => no free cells
+        for (std::size_t i=0; i<m.cells.size(); ++i)
+        {
+            if (m.cells[i] != 0) continue;          // skip if obstacle
+            best = std::min(best, m.cost[i]);
+        }
+
+        if (best == std::numeric_limits<int>::max()) return 1;
+
+        assert(best >= 1);
+        return best;
+    }
 }

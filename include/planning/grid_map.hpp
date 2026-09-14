@@ -18,6 +18,7 @@ namespace planning
         int height = 0;
         std::vector<std::uint8_t> cells;    // row-major; 0 = free, 1 = obstacle
         std::vector<int> cost;              // cost to ENTER this cell, >= 1
+        int min_cost = 1;
     };
 
     // function declarations
@@ -27,5 +28,5 @@ namespace planning
     std::vector<Cell> neighbors4(const GridMap &m, Cell c);
     GridMap make_grid(const std::vector<std::string> &rows);
     void print_grid(GridMap &m);
-
+    int min_free_cost(const GridMap&);
 }

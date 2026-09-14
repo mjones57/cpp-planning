@@ -13,6 +13,7 @@ add_library(planning
     src/grid_map.cpp
     src/bfs.cpp
     src/dijkstra.cpp
+    src/astar.cpp
 )
 target_include_directories(planning PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_compile_options(planning PRIVATE -Wall -Wextra -Wpedantic)
