@@ -7,7 +7,7 @@
 namespace planning
 {
     // Custom functions
-    std::vector<Cell> bfs(const GridMap &m, Cell start, Cell goal, int& expansions)
+    std::vector<Cell> bfs(const GridMap &m, Cell start, Cell goal, long *expansions)
     {
 
         // Guard endpoints
@@ -15,6 +15,8 @@ namespace planning
             return {};
         if (!is_free(m, goal))
             return {};
+        if (expansions)
+            *expansions = 0;
 
         // Init visited, parent, frontier
         std::vector<std::uint8_t> visited(m.cells.size(), 0);
@@ -38,7 +40,8 @@ namespace planning
             const std::size_t ci{index(m, current)};
 
             // Increment expansion count
-            ++expansions;
+            if (expansions)
+                ++*expansions;
 
             // early exit condition: reached goal
             if (current.x == goal.x && current.y == goal.y)
@@ -65,18 +68,18 @@ namespace planning
             }
         }
 
-        if (!goal_found) {
+        if (!goal_found)
+        {
             // Unreachable case
             std::vector<Cell> empty_path;
             return empty_path;
         }
 
-        std::vector<Cell> path {reconstruct(m, parent, goal)};
+        std::vector<Cell> path{reconstruct(m, parent, goal)};
         return path;
     }
 
-
-    std::vector<Cell> reconstruct(const GridMap& m, const std::vector<int>& parent, const Cell& goal)
+    std::vector<Cell> reconstruct(const GridMap &m, const std::vector<int> &parent, const Cell &goal)
     {
         // Reconstructing the path
         std::vector<Cell> path;
@@ -94,7 +97,7 @@ namespace planning
             path.push_back({parent_index % m.width, parent_index / m.width});
         }
         std::reverse(path.begin(), path.end());
-        
+
         return path;
     }
 
@@ -116,8 +119,10 @@ namespace planning
         {
             if (m.cells[i] == 0)
             {
-                if (m.cost[i] == 1) canvas.push_back('.');
-                else if (m.cost[i] > 1) canvas.push_back('~');
+                if (m.cost[i] == 1)
+                    canvas.push_back('.');
+                else if (m.cost[i] > 1)
+                    canvas.push_back('~');
             }
             else
             {

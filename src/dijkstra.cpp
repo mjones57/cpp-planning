@@ -3,43 +3,33 @@
 #include <queue>
 #include <limits>
 
-namespace planning {
+namespace planning
+{
 
-    namespace {
+    namespace
+    {
         // Anonymous namespace to hold Node and ByCost
-        struct Node 
+        struct Node
         {
-            int cost;   // g: cost from start to this cell
+            int cost; // g: cost from start to this cell
             Cell c;
         };
 
-        struct ByCost 
+        struct ByCost
         {
-            bool operator()(const Node& a, const Node& b) const { return a.cost > b.cost; }
+            bool operator()(const Node &a, const Node &b) const { return a.cost > b.cost; }
         };
     }
 
-
-
-    int path_cost(const GridMap& m, const std::vector<Cell>& path) 
-    {
-        // Sum cost of every cell AFTER the starting cell
-        // Precondition: path assumed to be in start->goal order
-        int sum {0};
-
-        for (std::size_t ci=1; ci<path.size(); ci++) 
-        {
-            sum += m.cost[index(m, path[ci])];
-        }
-
-        return sum;
-    }
-
-    std::vector<Cell> dijkstra(const GridMap &m, Cell start, Cell goal, int& expansions)
+    std::vector<Cell> dijkstra(const GridMap &m, Cell start, Cell goal, long *expansions)
     {
         // Guard endpoints
-        if (!is_free(m, start)) return {};
-        if (!is_free(m, goal)) return {};
+        if (!is_free(m, start))
+            return {};
+        if (!is_free(m, goal))
+            return {};
+        if (expansions)
+            *expansions = 0;
 
         // Init cost_so_far, parent, frontier
         std::vector<int> cost_so_far(m.cells.size(), std::numeric_limits<int>::max());
@@ -59,12 +49,15 @@ namespace planning {
         {
 
             // Get current node and stale guard entry
-            const Node cur = frontier.top(); frontier.pop();
+            const Node cur = frontier.top();
+            frontier.pop();
             const std::size_t ci = index(m, cur.c);
-            if (cur.cost > cost_so_far[ci]) continue;
+            if (cur.cost > cost_so_far[ci])
+                continue;
 
             // Increment expansion count (after stale guard)
-            ++expansions;
+            if (expansions)
+                ++*expansions;
 
             // early exit condition: reached goal
             if (cur.c.x == goal.x && cur.c.y == goal.y)
@@ -91,13 +84,14 @@ namespace planning {
             }
         }
 
-        if (!goal_found) {
+        if (!goal_found)
+        {
             // Unreachable case
             std::vector<Cell> empty_path;
             return empty_path;
         }
 
-        std::vector<Cell> path {reconstruct(m, parent, goal)};
+        std::vector<Cell> path{reconstruct(m, parent, goal)};
         return path;
     }
 

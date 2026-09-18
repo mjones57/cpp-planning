@@ -10,14 +10,17 @@ namespace planning
     {
         int x = 0;
         int y = 0;
+
+        // C++20: compiler writes memberwise == and != for us
+        bool operator==(const Cell &) const = default;
     };
 
     struct GridMap
     {
         int width = 0;
         int height = 0;
-        std::vector<std::uint8_t> cells;    // row-major; 0 = free, 1 = obstacle
-        std::vector<int> cost;              // cost to ENTER this cell, >= 1
+        std::vector<std::uint8_t> cells; // row-major; 0 = free, 1 = obstacle
+        std::vector<int> cost;           // cost to ENTER this cell, >= 1
         int min_cost = 1;
     };
 
@@ -28,5 +31,6 @@ namespace planning
     std::vector<Cell> neighbors4(const GridMap &m, Cell c);
     GridMap make_grid(const std::vector<std::string> &rows);
     void print_grid(GridMap &m);
-    int min_free_cost(const GridMap&);
+    int min_free_cost(const GridMap &);
+    int path_cost(const GridMap &, const std::vector<Cell> &);
 }

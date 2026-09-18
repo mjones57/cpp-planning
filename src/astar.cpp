@@ -2,33 +2,40 @@
 #include <cmath>
 #include <queue>
 
-namespace planning 
+namespace planning
 {
-    namespace 
+    namespace
     {
         // Anonymous namespace to hold Node and ByCost
-        struct Node 
+        struct Node
         {
-            int f;      // g+h; used for priority queue ordering
-            int g;      // true cost from start; used for relaxation
+            int f; // g+h; used for priority queue ordering
+            int g; // true cost from start; used for relaxation
             Cell c;
         };
 
-        struct ByCost 
+        struct ByCost
         {
-            bool operator()(const Node& a, const Node& b) const {
-                if (a.f == b.f)  { return a.g < b.g; }     // tie-breaker: take node with higher g
-                return a.f > b.f; 
+            bool operator()(const Node &a, const Node &b) const
+            {
+                if (a.f == b.f)
+                {
+                    return a.g < b.g;
+                } // tie-breaker: take node with higher g
+                return a.f > b.f;
             }
         };
     }
 
-
-    std::vector<Cell> astar(const GridMap &m, Cell start, Cell goal, int& expansions)
+    std::vector<Cell> astar(const GridMap &m, Cell start, Cell goal, long *expansions, int weight)
     {
         // Guard endpoints
-        if (!is_free(m, start)) return {};
-        if (!is_free(m, goal)) return {};
+        if (!is_free(m, start))
+            return {};
+        if (!is_free(m, goal))
+            return {};
+        if (expansions)
+            *expansions = 0;
 
         // Init cost_so_far, parent, frontier
         std::vector<int> cost_so_far(m.cells.size(), std::numeric_limits<int>::max());
@@ -36,7 +43,7 @@ namespace planning
         std::vector<int> parent(m.cells.size(), 0);
 
         std::priority_queue<Node, std::vector<Node>, ByCost> frontier;
-        frontier.push(Node{heuristic(m, start, goal), 0, start});
+        frontier.push(Node{heuristic(m, start, goal) * weight, 0, start});
 
         std::size_t start_index = index(m, start);
         cost_so_far[index(m, start)] = 1;
@@ -48,12 +55,15 @@ namespace planning
         {
 
             // Get current node and stale guard entry
-            const Node cur = frontier.top(); frontier.pop();
+            const Node cur = frontier.top();
+            frontier.pop();
             const std::size_t ci = index(m, cur.c);
-            if (cur.g > cost_so_far[ci]) continue;
+            if (cur.g > cost_so_far[ci])
+                continue;
 
             // Increment expansion count (after stale guard)
-            ++expansions;
+            if (expansions)
+                ++*expansions;
 
             // early exit condition: reached goal
             if (cur.c.x == goal.x && cur.c.y == goal.y)
@@ -75,27 +85,28 @@ namespace planning
                 {
                     cost_so_far[ni] = new_g;
                     parent[ni] = static_cast<int>(ci);
-                    frontier.push(Node{new_g + heuristic(m, n, goal), new_g, n});
+                    frontier.push(Node{new_g + heuristic(m, n, goal) * weight, new_g, n});
                 }
             }
         }
 
-        if (!goal_found) {
+        if (!goal_found)
+        {
             // Unreachable case
             std::vector<Cell> empty_path;
             return empty_path;
         }
 
-        std::vector<Cell> path {reconstruct(m, parent, goal)};
+        std::vector<Cell> path{reconstruct(m, parent, goal)};
         return path;
     }
 
-    int manhattan(Cell a, Cell b) 
+    int manhattan(Cell a, Cell b)
     {
-        return abs(a.x-b.x) + abs(a.y-b.y);
+        return abs(a.x - b.x) + abs(a.y - b.y);
     }
 
-    int heuristic(const GridMap& m, Cell from, Cell goal) 
+    int heuristic(const GridMap &m, Cell from, Cell goal)
     {
         return manhattan(from, goal) * m.min_cost;
     }

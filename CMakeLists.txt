@@ -33,3 +33,25 @@ target_compile_options(bfs_demo PRIVATE -Wall -Wextra -Wpedantic)
 add_executable(planner_compare apps/planner_compare.cpp)
 target_link_libraries(planner_compare PRIVATE planning)
 target_compile_options(planner_compare PRIVATE -Wall -Wextra -Wpedantic)
+
+option(BUILD_TESTING_PLANNING "Build the unit tests" ON)
+if(BUILD_TESTING_PLANNING)
+    include(FetchContent)
+    FetchContent_Declare(googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG                v1.15.2
+    )
+    set(gtest_force_chared_Crt ON CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(googletest)
+
+    enable_testing()
+    add_executable(planning_tests
+        tests/test_grid_map.cpp
+        tests/test_planners.cpp
+    )
+    target_link_libraries(planning_tests PRIVATE planning GTest::gtest_main)
+    target_compile_options(planning_tests PRIVATE -Wall -Wextra)
+
+    include(GoogleTest)
+    gtest_discover_tests(planning_tests)
+endif()
