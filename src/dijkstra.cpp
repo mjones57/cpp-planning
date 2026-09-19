@@ -21,7 +21,9 @@ namespace planning
         };
     }
 
-    std::vector<Cell> dijkstra(const GridMap &m, Cell start, Cell goal, long *expansions)
+
+    // Four-connected version
+    std::vector<Cell> dijkstra(const GridMap &m, Cell start, Cell goal, long *expansions, Connectivity conn)
     {
         // Guard endpoints
         if (!m.is_free(start))
@@ -52,8 +54,7 @@ namespace planning
             const Node cur = frontier.top();
             frontier.pop();
             const std::size_t ci = m.index(cur.c);
-            if (cur.cost > cost_so_far[ci])
-                continue;
+            if (cur.cost > cost_so_far[ci]) { continue; }
 
             // Increment expansion count (after stale guard)
             if (expansions)
@@ -67,14 +68,15 @@ namespace planning
             }
 
             // get neighbors
-            std::vector<Cell> ns{neighbors4(m, cur.c)};
+            const std::vector<Cell> ns = (conn == Connectivity::Eight) ? neighbors8(m, cur.c)
+                                                                       : neighbors4(m, cur.c);
 
             // loop through neighbors
             for (const Cell &n : ns)
             {
                 // Relaxation step
                 std::size_t ni{m.index(n)};
-                const int new_cost = cur.cost + m.cost_at(n);
+                const int new_cost = cur.cost + edge_cost(m, cur.c, n);
                 if (new_cost < cost_so_far[ni])
                 {
                     cost_so_far[ni] = new_cost;

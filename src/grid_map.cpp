@@ -212,6 +212,37 @@ namespace planning
         return neighbors;
     }
 
+    std::vector<Cell> neighbors8(const GridMap &m, Cell c)
+    {
+
+        // Assign four-connected offsets
+        static constexpr std::array<Cell, 8> kOffsets{{
+            {1, 0}, {-1, 0}, {0, 1}, {0, -1},
+            {1, 1}, {1, -1}, {-1, 1}, {-1, -1}
+        }};
+
+        // Init empty vector and reserve 4 cells
+        std::vector<Cell> neighbors;
+        neighbors.reserve(kOffsets.size());
+
+        // Loop through offsets and check if free
+        for (const Cell &d : kOffsets)
+        {
+            const Cell n{c.x + d.x, c.y + d.y};
+            if (m.is_free(n))
+            {
+                neighbors.push_back(n);
+            }
+        }
+        return neighbors;
+    }
+
+    int edge_cost(const GridMap& m, Cell from, Cell to)
+    {
+        const bool diag = (from.x != to.x) && (from.y != to.y);
+        return (diag ? kDiag : kOrtho) * m.cost_at(to);
+    }
+
     int path_cost(const GridMap &m, const std::vector<Cell> &path)
     {
         // Sum cost of every cell AFTER the starting cell
@@ -220,7 +251,7 @@ namespace planning
 
         for (std::size_t ci = 1; ci < path.size(); ci++)
         {
-            sum += m.cost_at(path[ci]);
+            sum += edge_cost(m, path[ci-1], path[ci]);
         }
 
         return sum;

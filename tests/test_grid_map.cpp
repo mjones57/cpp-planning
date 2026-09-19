@@ -68,6 +68,6 @@ TEST(GridMap, PathCostIsDirectional)
     const GridMap m = make_grid({"....", ".~~~", "...."});
     const std::vector<Cell> path_fwd = {{0, 0}, {1, 0}, {1, 1}};
     const std::vector<Cell> path_rev = {{1, 1}, {1, 0}, {0, 0}};
-    EXPECT_EQ(path_cost(m, path_fwd), 6);
-    EXPECT_EQ(path_cost(m, path_rev), 2);
+    EXPECT_EQ(path_cost(m, path_fwd), 60);
+    EXPECT_EQ(path_cost(m, path_rev), 20);
 }

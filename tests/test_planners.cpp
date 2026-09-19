@@ -135,3 +135,12 @@ TEST(Planners, BlockedEndpointsReturnEmptyPath)
         ExpectNoPath(m, Cell{0, 0}, Cell{2, 1});
     }
 }
+
+TEST(Planners, EightConnectedCostNotMoreThanFour)
+{
+    const GridMap m = make_grid(kPocketRows);
+    const Cell s{0, 2}, g{11, 2};
+    const std::vector<Cell> path4 = dijkstra(m, s, g);
+    const std::vector<Cell> path8 = dijkstra(m, s, g, nullptr, Connectivity::Eight);
+    EXPECT_LE(path_cost(m, path8), path_cost(m, path4)) << "8-connected path cost exceeds cost of 4-connected path";
+}
