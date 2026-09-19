@@ -13,7 +13,7 @@ namespace
         EXPECT_EQ(path.front().x, start.x);
         EXPECT_EQ(path.back().x, goal.x);
         for (const Cell &c : path)
-            EXPECT_TRUE(is_free(m, c)) << "path enters a blocked cell";
+            EXPECT_TRUE(m.is_free(c)) << "path enters a blocked cell";
         for (std::size_t i = 1; i < path.size(); ++i)
         {
             const int step = std::abs(path[i].x - path[i - 1].x) + std::abs(path[i].y - path[i - 1].y);
@@ -86,12 +86,12 @@ TEST(Planners, HeuristicAdmissibleEverywhere)
 {
     const GridMap m = make_grid(kMudRows);
     const Cell g{11, 2};
-    for (int y = 0; y < m.height; ++y)
+    for (int y = 0; y < m.height(); ++y)
     {
-        for (int x = 0; x < m.width; ++x)
+        for (int x = 0; x < m.width(); ++x)
         {
             const Cell c{x, y};
-            if (!is_free(m, c))
+            if (!m.is_free(c))
                 continue;
             const std::vector<Cell> p = dijkstra(m, c, g);
             if (p.empty())

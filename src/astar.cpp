@@ -30,23 +30,23 @@ namespace planning
     std::vector<Cell> astar(const GridMap &m, Cell start, Cell goal, long *expansions, int weight)
     {
         // Guard endpoints
-        if (!is_free(m, start))
+        if (!m.is_free(start))
             return {};
-        if (!is_free(m, goal))
+        if (!m.is_free(goal))
             return {};
         if (expansions)
             *expansions = 0;
 
         // Init cost_so_far, parent, frontier
-        std::vector<int> cost_so_far(m.cells.size(), std::numeric_limits<int>::max());
+        std::vector<int> cost_so_far(m.size(), std::numeric_limits<int>::max());
 
-        std::vector<int> parent(m.cells.size(), 0);
+        std::vector<int> parent(m.size(), 0);
 
         std::priority_queue<Node, std::vector<Node>, ByCost> frontier;
         frontier.push(Node{heuristic(m, start, goal) * weight, 0, start});
 
-        std::size_t start_index = index(m, start);
-        cost_so_far[index(m, start)] = 1;
+        std::size_t start_index = m.index(start);
+        cost_so_far[m.index(start)] = 1;
         parent[start_index] = -1;
 
         bool goal_found = false;
@@ -57,7 +57,7 @@ namespace planning
             // Get current node and stale guard entry
             const Node cur = frontier.top();
             frontier.pop();
-            const std::size_t ci = index(m, cur.c);
+            const std::size_t ci = m.index(cur.c);
             if (cur.g > cost_so_far[ci])
                 continue;
 
@@ -79,8 +79,8 @@ namespace planning
             for (const Cell &n : ns)
             {
                 // Relaxation step
-                std::size_t ni{index(m, n)};
-                const int new_g = cur.g + m.cost[ni];
+                std::size_t ni{m.index(n)};
+                const int new_g = cur.g + m.cost_at(n);
                 if (new_g < cost_so_far[ni])
                 {
                     cost_so_far[ni] = new_g;
@@ -108,6 +108,6 @@ namespace planning
 
     int heuristic(const GridMap &m, Cell from, Cell goal)
     {
-        return manhattan(from, goal) * m.min_cost;
+        return manhattan(from, goal) * m.min_cost();
     }
 }

@@ -18,19 +18,19 @@ namespace
 TEST(GridMap, IndexIsRowMajor)
 {
     const GridMap m = make_grid({"....", "....", "...."});
-    EXPECT_EQ(index(m, Cell{0, 1}), 4u);
-    EXPECT_EQ(index(m, Cell{2, 2}), 10u);
+    EXPECT_EQ(m.index(Cell{0, 1}), 4u);
+    EXPECT_EQ(m.index(Cell{2, 2}), 10u);
 }
 
 TEST(GridMap, InBoundsRejectsEdges)
 {
     const GridMap m = make_grid({"....", "....", "...."});
-    ASSERT_TRUE(in_bounds(m, Cell{0, 0}));
-    ASSERT_TRUE(in_bounds(m, Cell{m.width - 1, m.height - 1}));
-    EXPECT_FALSE(in_bounds(m, Cell{m.width, 0}));
-    EXPECT_FALSE(in_bounds(m, Cell{0, m.height}));
-    EXPECT_FALSE(in_bounds(m, Cell{-1, 0}));
-    EXPECT_FALSE(in_bounds(m, Cell{0, -1}));
+    ASSERT_TRUE(m.in_bounds(Cell{0, 0}));
+    ASSERT_TRUE(m.in_bounds(Cell{m.width() - 1, m.height() - 1}));
+    EXPECT_FALSE(m.in_bounds(Cell{m.width(), 0}));
+    EXPECT_FALSE(m.in_bounds(Cell{0, m.height()}));
+    EXPECT_FALSE(m.in_bounds(Cell{-1, 0}));
+    EXPECT_FALSE(m.in_bounds(Cell{0, -1}));
 }
 
 TEST(GridMap, Neighbors4SkipsObstaclesAndEdges)
@@ -56,11 +56,11 @@ TEST(GridMap, Neighbors4ReturnsCorrectCells)
 
 TEST(GridMap, MinFreeCostIgnoresObstacles)
 {
-    EXPECT_EQ(min_free_cost(make_grid({"....", ".~~.", "...."})), 1);
-    EXPECT_EQ(min_free_cost(make_grid({"~~~~", "~##~", "~~~~"})), 5);
-    EXPECT_EQ(min_free_cost(make_grid({"~~^~", "~##~", "~~~~"})), 3);
-    EXPECT_EQ(min_free_cost(make_grid({"####", "####"})), 1);
-    EXPECT_EQ(min_free_cost(make_grid({})), 1);
+    EXPECT_EQ(make_grid({"....", ".~~.", "...."}).min_cost(), 1);
+    EXPECT_EQ(make_grid({"~~~~", "~##~", "~~~~"}).min_cost(), 5);
+    EXPECT_EQ(make_grid({"~~^~", "~##~", "~~~~"}).min_cost(), 3);
+    EXPECT_EQ(make_grid({"####", "####"}).min_cost(), 1);
+    EXPECT_EQ(make_grid({}).min_cost(), 1);
 }
 
 TEST(GridMap, PathCostIsDirectional)
