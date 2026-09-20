@@ -14,22 +14,22 @@ int main()
     const planning::GridMap m = planning::make_grid(rows);
 
     // Run bfs test
-    long expansions_bfs{0};
-    std::vector<planning::Cell> path_bfs = planning::bfs(m, {0, 2}, {11, 2}, &expansions_bfs);
+    planning::SearchStats stats_bfs;
+    std::vector<planning::Cell> path_bfs = planning::bfs(m, {0, 2}, {11, 2}, &stats_bfs);
     int bfs_cost{planning::path_cost(m, path_bfs)};
-    std::cout << "BFS       cells=" << path_bfs.size() << " cost=" << bfs_cost << " expansions=" << expansions_bfs << "\n";
+    std::cout << "BFS       cells=" << path_bfs.size() << " cost=" << bfs_cost << " expansions=" << stats_bfs.expansions << "\n";
     print_path(m, path_bfs);
 
-    long expansions_dijk{0};
-    std::vector<planning::Cell> path_dijk = planning::dijkstra(m, {0, 2}, {11, 2}, &expansions_dijk);
+    planning::SearchStats stats_dijk;
+    std::vector<planning::Cell> path_dijk = planning::dijkstra(m, {0, 2}, {11, 2}, &stats_dijk);
     int dijk_cost{planning::path_cost(m, path_dijk)};
-    std::cout << "Dijkstra  cells=" << path_dijk.size() << " cost=" << dijk_cost << " expansions=" << expansions_dijk << "\n";
+    std::cout << "Dijkstra  cells=" << path_dijk.size() << " cost=" << dijk_cost << " expansions=" << stats_dijk.expansions << "\n";
     print_path(m, path_dijk);
 
-    long expansions_astar{0};
-    std::vector<planning::Cell> path_astar = planning::astar(m, {0, 2}, {11, 2}, &expansions_astar);
+    planning::SearchStats stats_astar;
+    std::vector<planning::Cell> path_astar = planning::astar(m, {0, 2}, {11, 2}, &stats_astar);
     int astar_cost{planning::path_cost(m, path_astar)};
-    std::cout << "A*        cells=" << path_astar.size() << " cost=" << astar_cost << " expansions=" << expansions_astar << "\n";
+    std::cout << "A*        cells=" << path_astar.size() << " cost=" << astar_cost << " expansions=" << stats_astar.expansions << "\n";
     print_path(m, path_astar);
 
     return 0;

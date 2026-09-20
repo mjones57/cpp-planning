@@ -1,4 +1,5 @@
 #include "planning/astar.hpp"
+#include "search_common.hpp"
 #include <cmath>
 #include <queue>
 
@@ -27,15 +28,15 @@ namespace planning
         };
     }
 
-    std::vector<Cell> astar(const GridMap &m, Cell start, Cell goal, long *expansions, int weight)
+    std::vector<Cell> astar(const GridMap &m, Cell start, Cell goal, SearchStats* stats, int weight)
     {
         // Guard endpoints
         if (!m.is_free(start))
             return {};
         if (!m.is_free(goal))
             return {};
-        if (expansions)
-            *expansions = 0;
+        
+        SearchStats local;
 
         // Init cost_so_far, parent, frontier
         std::vector<int> cost_so_far(m.size(), std::numeric_limits<int>::max());
@@ -58,12 +59,10 @@ namespace planning
             const Node cur = frontier.top();
             frontier.pop();
             const std::size_t ci = m.index(cur.c);
-            if (cur.g > cost_so_far[ci])
-                continue;
+            if (cur.g > cost_so_far[ci]) { ++local.removals; continue; }
 
             // Increment expansion count (after stale guard)
-            if (expansions)
-                ++*expansions;
+            ++local.expansions;
 
             // early exit condition: reached goal
             if (cur.c.x == goal.x && cur.c.y == goal.y)
@@ -86,6 +85,8 @@ namespace planning
                     cost_so_far[ni] = new_g;
                     parent[ni] = static_cast<int>(ci);
                     frontier.push(Node{new_g + heuristic(m, n, goal) * weight, new_g, n});
+                    ++local.inserts;
+                    local.peak = std::max(local.peak, frontier.size());
                 }
             }
         }
@@ -97,6 +98,7 @@ namespace planning
             return empty_path;
         }
 
+        if (stats) *stats = local;
         std::vector<Cell> path{reconstruct(m, parent, goal)};
         return path;
     }

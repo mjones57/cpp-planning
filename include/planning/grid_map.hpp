@@ -31,6 +31,7 @@ namespace planning
 
         // member functions
         std::size_t index(Cell c) const;
+        Cell cell_at(std::size_t i) const;
         bool in_bounds(Cell c) const;
         bool is_free(Cell c) const;
         int cost_at(Cell c) const;

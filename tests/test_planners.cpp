@@ -75,11 +75,11 @@ TEST(Planners, AStarExpandsNoMoreThanDijkstra)
 {
     const GridMap m = make_grid(kMudRows);
     const Cell s{0, 0}, g{2, 3};
-    long astar_exp{0};
-    long dij_exp{0};
+    SearchStats astar_exp{0};
+    SearchStats dij_exp{0};
     astar(m, s, g, &astar_exp);
     dijkstra(m, s, g, &dij_exp);
-    EXPECT_LE(astar_exp, dij_exp);
+    EXPECT_LE(astar_exp.expansions, dij_exp.expansions);
 }
 
 TEST(Planners, HeuristicAdmissibleEverywhere)
@@ -109,6 +109,15 @@ TEST(Planners, InflatedHeuristicCanBeSuboptimal)
     const int optimal = path_cost(m, dijkstra(m, s, g));
     const int inflated = path_cost(m, astar(m, s, g, nullptr, 5));
     EXPECT_GT(inflated, optimal);
+}
+
+TEST(Planners, DijkstraCostsEqual)
+{
+    const GridMap m = make_grid(kMudRows);
+    const Cell s{0, 2}, g{11, 2};
+    const int dij_pq = path_cost(m, dijkstra(m, s, g, nullptr, Connectivity::Eight));
+    const int dij_set = path_cost(m, dijkstra_set(m, s, g, nullptr, Connectivity::Eight));
+    EXPECT_EQ(dij_pq, dij_set);
 }
 
 TEST(Planners, BfsMatchesDijkstraOnUniformCost)

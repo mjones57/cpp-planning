@@ -1,4 +1,5 @@
 #include "planning/bfs.hpp"
+#include "search_common.hpp"
 #include <iostream>
 #include <array>
 #include <algorithm>
@@ -7,7 +8,7 @@
 namespace planning
 {
     // Custom functions
-    std::vector<Cell> bfs(const GridMap &m, Cell start, Cell goal, long *expansions)
+    std::vector<Cell> bfs(const GridMap &m, Cell start, Cell goal, SearchStats* stats)
     {
 
         // Guard endpoints
@@ -15,8 +16,8 @@ namespace planning
             return {};
         if (!m.is_free(goal))
             return {};
-        if (expansions)
-            *expansions = 0;
+
+        SearchStats local;
 
         // Init visited, parent, frontier
         std::vector<std::uint8_t> visited(m.size(), 0);
@@ -40,8 +41,7 @@ namespace planning
             const std::size_t ci{m.index(current)};
 
             // Increment expansion count
-            if (expansions)
-                ++*expansions;
+            ++local.expansions;
 
             // early exit condition: reached goal
             if (current.x == goal.x && current.y == goal.y)
@@ -65,6 +65,8 @@ namespace planning
                 visited[ni] = 1;
                 parent[ni] = ci;
                 frontier.push(n);
+                ++local.inserts;
+                local.peak = std::max(local.peak, frontier.size());
             }
         }
 
@@ -75,31 +77,9 @@ namespace planning
             return empty_path;
         }
 
+        if (stats) *stats = local;
         std::vector<Cell> path{reconstruct(m, parent, goal)};
         return path;
     }
-
-    std::vector<Cell> reconstruct(const GridMap &m, const std::vector<int> &parent, const Cell &goal)
-    {
-        // Reconstructing the path
-        std::vector<Cell> path;
-
-        path.push_back(goal);
-
-        // loop through parent until we hit -1
-        while (parent[m.index(path.back())] != -1)
-        {
-            const Cell curr = path.back();
-            const std::size_t curr_index{m.index(curr)};
-
-            const int parent_index{parent[curr_index]}; // flat index, need to inverse to get parent cell
-
-            path.push_back({parent_index % m.width(), parent_index / m.width()});
-        }
-        std::reverse(path.begin(), path.end());
-
-        return path;
-    }
-
     
 }

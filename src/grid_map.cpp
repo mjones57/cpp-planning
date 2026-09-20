@@ -85,6 +85,11 @@ namespace planning
         return static_cast<std::size_t>(c.y) * width_ + c.x;
     }
 
+    Cell GridMap::cell_at(std::size_t i) const
+    {
+        return Cell{static_cast<int>(i) % width_, static_cast<int>(i) / width_};
+    }
+
     // all four edges: do this before ever calling index
     bool GridMap::in_bounds(Cell c) const
     {

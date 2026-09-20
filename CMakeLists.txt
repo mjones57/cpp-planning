@@ -34,6 +34,10 @@ add_executable(planner_compare apps/planner_compare.cpp)
 target_link_libraries(planner_compare PRIVATE planning)
 target_compile_options(planner_compare PRIVATE -Wall -Wextra -Wpedantic)
 
+add_executable(frontier_compare apps/frontier_compare.cpp)
+target_link_libraries(frontier_compare PRIVATE planning)
+target_compile_options(frontier_compare PRIVATE -Wall -Wextra -Wpedantic)
+
 option(BUILD_TESTING_PLANNING "Build the unit tests" ON)
 if(BUILD_TESTING_PLANNING)
     include(FetchContent)
