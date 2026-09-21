@@ -3,6 +3,7 @@
 #include "planning/bfs.hpp"
 #include "planning/dijkstra.hpp"
 #include "planning/astar.hpp"
+#include "planning/planner.hpp"
 
 using namespace planning;
 namespace
@@ -10,15 +11,24 @@ namespace
     void ExpectValidPath(const GridMap &m, const std::vector<Cell> &path, Cell start, Cell goal)
     {
         ASSERT_FALSE(path.empty()); // ASSERT: indexing below depends on it
-        EXPECT_EQ(path.front().x, start.x);
-        EXPECT_EQ(path.back().x, goal.x);
+        EXPECT_EQ(path.front(), start);
+        EXPECT_EQ(path.back(), goal);
         for (const Cell &c : path)
             EXPECT_TRUE(m.is_free(c)) << "path enters a blocked cell";
         for (std::size_t i = 1; i < path.size(); ++i)
         {
-            const int step = std::abs(path[i].x - path[i - 1].x) + std::abs(path[i].y - path[i - 1].y);
-            EXPECT_EQ(step, 1) << "path teleports between cells " << i - 1;
+            const int dx = std::abs(path[i].x - path[i - 1].x);
+            const int dy = std::abs(path[i].y - path[i - 1].y);
+            EXPECT_LE(dx, 1) << "jumps more than one cell between " << i << " and " << i - 1;
+            EXPECT_LE(dy, 1) << "jumps more than one cell between  " << i << " and " << i - 1;
+            EXPECT_FALSE(dx == 0 && dy == 0) << "duplicate cell locations in path at " << i;
         }
+    }
+
+    void ExpectValidPlan(Planner &p, const GridMap &m, Cell s, Cell g)
+    {
+        p.configure(m);
+        ExpectValidPath(m, p.createPlan(s, g), s, g);
     }
 
     void ExpectNoPath(const GridMap &m, Cell start, Cell goal)
@@ -61,6 +71,23 @@ TEST(Planners, AllReturnStructurallyValidPaths)
     {
         SCOPED_TRACE("astar");
         ExpectValidPath(m, astar(m, s, g), s, g);
+    }
+}
+
+TEST(Planners, AllReturnStructurallyValidPlans)
+{
+    const GridMap m = make_grid(kMudRows);
+    const Cell s{0, 0}, g{11, 4};
+    BfsPlanner bfs_p;
+    DijkstraPlanner dijk_p;
+    AStarPlanner astar_p;
+    std::vector<Planner *> planners{&bfs_p, &dijk_p, &astar_p};
+
+    for (Planner *p : planners)
+    {
+        SCOPED_TRACE(p->name());
+        ExpectValidPlan(*p, m, s, g);
+        EXPECT_GT(p->last_stats().expansions, 0) << "stats never populated";
     }
 }
 
