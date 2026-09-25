@@ -1,7 +1,10 @@
-#include "planning/bfs.hpp"
-#include "planning/dijkstra.hpp"
-#include "planning/astar.hpp"
+#include "planning/grid_map.hpp"
+#include "planning/search_stats.hpp"
 #include "planning/planner.hpp"
+#include "planning/planner_factory.hpp"
+#include <memory>
+#include <vector>
+#include <string>
 #include <iostream>
 #include <iomanip>
 
@@ -16,7 +19,7 @@ namespace
         std::cout << std::left << std::setw(24) << p.name()
                   << std::right << std::setw(6) << path.size()
                   << std::setw(10) << path_cost(m, path)
-                  << std::setw(10) << st.expansions
+                  << std::setw(12) << st.expansions
                   << std::setw(10) << st.inserts
                   << std::setw(10) << st.removals
                   << std::setw(10) << st.peak << "\n";
@@ -27,11 +30,35 @@ namespace
         std::cout << std::left << std::setw(24) << "planner"
                   << std::right << std::setw(6) << "cells"
                   << std::setw(10) << "cost"
-                  << std::setw(10) << "expansions"
+                  << std::setw(12) << "expansions"
                   << std::setw(10) << "inserts"
                   << std::setw(10) << "removals"
                   << std::setw(10) << "peak" << "\n"
                   << std::string(80, '-') << "\n";
+    }
+
+    std::vector<std::unique_ptr<Planner>> build_registry()
+    {
+        std::vector<std::unique_ptr<Planner>> registry;
+        for (const std::string &id : {
+                 "bfs",
+                 "astar",
+                 "weighted",
+                 "dijkstra4",
+                 "dijkstra8",
+                 "dijkstra4_set",
+                 "dijkstra8_set",
+             })
+        {
+            auto p = make_planner(id);
+            if (!p)
+            {
+                std::cout << "  unknown planner id: " << id << "\n";
+                continue;
+            }
+            registry.push_back(std::move(p)); // MOVE: p is null afterwards!
+        }
+        return registry;
     }
 }
 
@@ -45,16 +72,12 @@ int main()
     // Convert text to grid map (occupancy grid)
     const GridMap m = planning::make_grid(rows);
 
-    // Run each planner to compare
-    BfsPlanner bfs_p;
-    DijkstraPlanner dijk_p;
-    AStarPlanner astar_p;
-    std::vector<Planner *> planners{&bfs_p, &dijk_p, &astar_p};
-
+    // Build planner registry
+    auto registry = build_registry();
     Cell s{0, 2}, g{11, 2};
 
     print_header();
-    for (Planner *p : planners)
+    for (const auto &p : registry)
     {
         p->configure(m);
         print_row(*p, m, s, g);
