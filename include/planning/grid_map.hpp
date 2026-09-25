@@ -19,7 +19,7 @@ namespace planning
     {
     public:
         GridMap() = default;
-        explicit GridMap(const std::vector<std::string>& rows);
+        explicit GridMap(const std::vector<std::string> &rows);
 
         // accessors
         int width() const { return width_; }
@@ -45,15 +45,15 @@ namespace planning
     };
 
     // thin factory, so construction reads same as before refactor
-    inline GridMap make_grid(const std::vector<std::string>& rows) { return GridMap(rows); }
+    inline GridMap make_grid(const std::vector<std::string> &rows) { return GridMap(rows); }
     inline constexpr int kOrtho = 10;
     inline constexpr int kDiag = 14;
 
     // free functions
     std::vector<Cell> neighbors4(const GridMap &m, Cell c);
     std::vector<Cell> neighbors8(const GridMap &m, Cell c);
-    int edge_cost(const GridMap& m, Cell from, Cell to);
-    void print_grid(GridMap &m);
+    int edge_cost(const GridMap &m, Cell from, Cell to);
+    void print_grid(const GridMap &m);
     int path_cost(const GridMap &, const std::vector<Cell> &);
     void print_path(const GridMap &m, const std::vector<Cell> &path);
 }

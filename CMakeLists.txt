@@ -14,6 +14,8 @@ add_library(planning
     src/bfs.cpp
     src/dijkstra.cpp
     src/astar.cpp
+    src/planner_factory.cpp
+    src/node_pool.cpp
 )
 target_include_directories(planning PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_compile_options(planning PRIVATE -Wall -Wextra -Wpedantic)
@@ -38,6 +40,10 @@ add_executable(frontier_compare apps/frontier_compare.cpp)
 target_link_libraries(frontier_compare PRIVATE planning)
 target_compile_options(frontier_compare PRIVATE -Wall -Wextra -Wpedantic)
 
+add_executable(node_pool_demo apps/node_pool_demo.cpp)
+target_link_libraries(node_pool_demo PRIVATE planning)
+target_compile_options(node_pool_demo PRIVATE -Wall -Wextra -Wpedantic)
+
 option(BUILD_TESTING_PLANNING "Build the unit tests" ON)
 if(BUILD_TESTING_PLANNING)
     include(FetchContent)
@@ -45,13 +51,14 @@ if(BUILD_TESTING_PLANNING)
         GIT_REPOSITORY https://github.com/google/googletest.git
         GIT_TAG                v1.15.2
     )
-    set(gtest_force_chared_Crt ON CACHE BOOL "" FORCE)
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(googletest)
 
     enable_testing()
     add_executable(planning_tests
         tests/test_grid_map.cpp
         tests/test_planners.cpp
+        tests/test_node_pool.cpp
     )
     target_link_libraries(planning_tests PRIVATE planning GTest::gtest_main)
     target_compile_options(planning_tests PRIVATE -Wall -Wextra)
