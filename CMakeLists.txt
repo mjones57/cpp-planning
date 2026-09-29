@@ -15,7 +15,6 @@ add_library(planning
     src/dijkstra.cpp
     src/astar.cpp
     src/planner_factory.cpp
-    src/node_pool.cpp
 )
 target_include_directories(planning PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_compile_options(planning PRIVATE -Wall -Wextra -Wpedantic)
@@ -59,10 +58,13 @@ if(BUILD_TESTING_PLANNING)
         tests/test_grid_map.cpp
         tests/test_planners.cpp
         tests/test_node_pool.cpp
+        tests/test_geometry.cpp
+        tests/test_collision.cpp
     )
     target_link_libraries(planning_tests PRIVATE planning GTest::gtest_main)
     target_compile_options(planning_tests PRIVATE -Wall -Wextra)
 
     include(GoogleTest)
-    gtest_discover_tests(planning_tests)
+    gtest_discover_tests(planning_tests
+        PROPERTIES ENVIRONMENT "ASAN_OPTIONS=detect_stack_use_after_return=1")
 endif()

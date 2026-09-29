@@ -4,6 +4,13 @@
 #include <vector>
 #include <string>
 
+/*
+I'm keeping this interface grid-only and giving continuous space
+planners a separate continuous space entry point. This avoids forcing
+continuous space planners to a grid and keeps each interface honest
+about its state type.
+*/
+
 namespace planning
 {
     class Planner
