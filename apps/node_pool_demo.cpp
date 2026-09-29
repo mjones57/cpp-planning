@@ -1,10 +1,11 @@
 #include "planning/node_pool.hpp"
+#include "planning/grid_map.hpp"
 #include <vector>
 #include <iostream>
 
 int main()
 {
-    planning::NodePool pool; // node pool
+    planning::NodePool<planning::Cell> pool; // node pool
     pool.add(planning::Cell{0, 0}, -1, 0.0);
     int added_nodes{20};
 
@@ -19,12 +20,12 @@ int main()
     auto path = pool.walk(leaf);
 
     // print path
-    auto leaf_node = pool.at(leaf);
-    std::cout << "walk from (" << leaf_node.c.x << "," << leaf_node.c.y << "):";
+    const auto &leaf_node = pool.at(leaf);
+    std::cout << "walk from (" << leaf_node.state.x << "," << leaf_node.state.y << "):";
     for (const auto &i : path)
     {
-        auto n = pool.at(i);
-        std::cout << " (" << n.c.x << "," << n.c.y << ")";
+        const auto &n = pool.at(i);
+        std::cout << " (" << n.state.x << "," << n.state.y << ")";
     }
     std::cout << "\n";
 

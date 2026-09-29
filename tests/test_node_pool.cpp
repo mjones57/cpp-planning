@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "planning/grid_map.hpp"
 #include "planning/node_pool.hpp"
+#include "planning/geometry.hpp"
 #include <vector>
 
 using namespace planning;
@@ -9,23 +10,18 @@ TEST(NodePool, WalkExpectedHops)
 {
     // setup node pool
     constexpr int kN = 5;
-    NodePool pool;
+    NodePool<Cell> pool;
     pool.add(Cell{0, 0}, -1, 0.0); // root
 
     // add nodes to pool
     int leaf = -1;
     for (int i = 1; i <= kN; ++i)
     {
-        leaf = pool.add(planning::Cell{i, i}, i - 1, double(i));
+        leaf = pool.add(Cell{i, i}, i - 1, double(i));
     }
 
     // walk back leaf->root
     auto path = pool.walk(leaf);
-
-    // Expect end of path to be root (i=0, parent=-1)
-    ASSERT_FALSE(path.empty());
-    EXPECT_EQ(path.back(), 0);
-    EXPECT_EQ(pool.at(path.back()).parent, -1);
 
     // Test the path
     EXPECT_EQ(path, (std::vector<int>{5, 4, 3, 2, 1, 0}));
@@ -34,15 +30,15 @@ TEST(NodePool, WalkExpectedHops)
 TEST(NodePool, LinksSurviveGrowth)
 {
     constexpr int kN = 1000;
-    NodePool pool;
+    NodePool<Cell> pool;
     std::vector<int> ids{pool.add(Cell{0, 0}, -1, 0.0)};
     for (int i = 1; i <= kN; ++i)
         ids.push_back(pool.add(Cell{i, i}, ids.back(), double(i)));
 
     for (int i = 1; i <= kN; ++i)
     {
-        const Node &n = pool.at(ids[i]);
-        ASSERT_EQ(pool.at(n.parent).c, (Cell{i - 1, i - 1})) << "link broken at node " << i;
+        const auto &n = pool.at(ids[i]);
+        ASSERT_EQ(pool.at(n.parent).state, (Cell{i - 1, i - 1})) << "link broken at node " << i;
     }
     EXPECT_EQ(pool.walk(ids.back()).size(), kN + 1u); // one full walk end to end
 }
@@ -51,7 +47,7 @@ TEST(NodePool, SuccessfulPruneAndRewire)
 {
     // Initialize node pool
     constexpr int kN = 5;
-    NodePool pool;
+    NodePool<Cell> pool;
     std::vector<int> ids{pool.add(Cell{0, 0}, -1, 0.0)};
 
     // Add a few nodes to pool
@@ -69,8 +65,8 @@ TEST(NodePool, SuccessfulPruneAndRewire)
 
     for (int i = 1; i <= kN; ++i)
     {
-        const Node &n = pool.at(ids[i]);
-        ASSERT_EQ(n.c, (Cell{i, i})) << "node " << i << "'s index changes";
+        const auto &n = pool.at(ids[i]);
+        ASSERT_EQ(n.state, (Cell{i, i})) << "node " << i << "'s index changes";
     }
     // Test the path
     auto path = pool.walk(leaf);
@@ -80,7 +76,7 @@ TEST(NodePool, SuccessfulPruneAndRewire)
 
 TEST(NodePool, BadParentRefused)
 {
-    NodePool pool;
+    NodePool<Cell> pool;
     pool.add(Cell{0, 0}, -1, 0.0); // root
 
     // Add node with negative parent
@@ -100,7 +96,7 @@ TEST(NodePool, WalkCycleReturnsEmpty)
 {
     // Initialize node pool
     constexpr int kN = 5;
-    NodePool pool;
+    NodePool<Cell> pool;
     std::vector<int> ids{pool.add(Cell{0, 0}, -1, 0.0)};
 
     // Add a few nodes to pool
@@ -120,4 +116,28 @@ TEST(NodePool, WalkCycleReturnsEmpty)
 
     // Expect walk to return empty due to cycle
     EXPECT_TRUE(pool.walk(ids[5]).empty());
+}
+
+TEST(NodePool, SecondStateTypeWalks)
+{
+    // setup node pool
+    constexpr int kN = 5;
+    NodePool<Point2> pool;
+    pool.add(Point2{0, 0}, -1, 0.0); // root
+
+    // add nodes to pool
+    int leaf = -1;
+    for (int i = 1; i <= kN; ++i)
+    {
+        leaf = pool.add(Point2{double(i), double(i)}, i - 1, double(i));
+    }
+
+    // verify Point2 is stored properly
+    EXPECT_DOUBLE_EQ(pool.at(leaf).state.x, 5.0);
+
+    // walk back leaf->root
+    auto path = pool.walk(leaf);
+
+    // Test the path via indices
+    EXPECT_EQ(path, (std::vector<int>{5, 4, 3, 2, 1, 0}));
 }
