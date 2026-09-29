@@ -52,6 +52,7 @@ namespace planning
     // free functions
     std::vector<Cell> neighbors4(const GridMap &m, Cell c);
     std::vector<Cell> neighbors8(const GridMap &m, Cell c);
+    bool corner_clear(const GridMap &m, Cell from, Cell to);
     int edge_cost(const GridMap &m, Cell from, Cell to);
     void print_grid(const GridMap &m);
     int path_cost(const GridMap &, const std::vector<Cell> &);

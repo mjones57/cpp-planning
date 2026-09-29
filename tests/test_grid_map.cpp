@@ -71,3 +71,21 @@ TEST(GridMap, PathCostIsDirectional)
     EXPECT_EQ(path_cost(m, path_fwd), 60);
     EXPECT_EQ(path_cost(m, path_rev), 20);
 }
+
+TEST(GridMap, Neighbors8ReturnsCorrectCells)
+{
+    const GridMap m1 = make_grid({".#", "#."}); // both ortho and diag blocked
+    const GridMap m2 = make_grid({"..", ".."}); // completely free
+    const GridMap m3 = make_grid({".#", ".."}); // 3-cell path, diag blocked by one corner
+
+    // map 1 (0,0): expect neighbors8 to return empty (diagonal blocked)
+    EXPECT_TRUE(neighbors8(m1, Cell{0, 0}).empty());
+
+    // map 2 (0,0): expect all 3 neighbor cells returned
+    const std::vector<Cell> expected_m2 = {{1, 0}, {0, 1}, {1, 1}}; // sorted by (y, x)
+    EXPECT_EQ(sorted_cells(neighbors8(m2, Cell{0, 0})), expected_m2);
+
+    // map 3 (0,0): expect only south neighbor
+    const std::vector<Cell> expected_m3 = {{0, 1}}; // sorted by (y, x)
+    EXPECT_EQ(sorted_cells(neighbors8(m3, Cell{0, 0})), expected_m3);
+}

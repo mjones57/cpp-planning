@@ -6,9 +6,9 @@
 
 namespace planning
 {
-    namespace 
+    namespace
     {
-        int min_free_cost(const std::vector<uint8_t>& cells, const std::vector<int>& cost)
+        int min_free_cost(const std::vector<uint8_t> &cells, const std::vector<int> &cost)
         {
             assert(cells.size() == cost.size());
             int best{std::numeric_limits<int>::max()};
@@ -24,58 +24,64 @@ namespace planning
             return best == std::numeric_limits<int>::max() ? 1 : best;
         }
 
-        char terrain_char(const GridMap& m, Cell c)
+        char terrain_char(const GridMap &m, Cell c)
         {
-            if (!m.is_free(c)) return '#';
+            if (!m.is_free(c))
+                return '#';
             switch (m.cost_at(c))
             {
-                case 1: return '.';
-                case 3: return '^';
-                case 5: return '~';
-                default: return '?';
+            case 1:
+                return '.';
+            case 3:
+                return '^';
+            case 5:
+                return '~';
+            default:
+                return '?';
             }
         }
     }
 
     // GridMap construction and member functions:
-    GridMap::GridMap(const std::vector<std::string>& rows)
-        : width_(rows.empty() ? 0: static_cast<int>(rows[0].size())),
-          height_(static_cast<int>(rows.size())) {
-            // ... fill cells_ and cost_ then compute min_cost_
-            cells_.reserve(width_ * height_);
-            cost_.reserve(width_ * height_);
+    GridMap::GridMap(const std::vector<std::string> &rows)
+        : width_(rows.empty() ? 0 : static_cast<int>(rows[0].size())),
+          height_(static_cast<int>(rows.size()))
+    {
+        // ... fill cells_ and cost_ then compute min_cost_
+        cells_.reserve(width_ * height_);
+        cost_.reserve(width_ * height_);
 
-            for (int y = 0; y < height_; y++)
-            { // iterate over each row (i = row)
-                for (int x = 0; x < width_; x++)
-                { // iterate through current row and push_back cell (j = col)
-                    if (rows[y][x] == '.')
-                    {
-                        cells_.push_back(0);
-                        cost_.push_back(1);
-                    }
-                    else if (rows[y][x] == '~')
-                    {
-                        cells_.push_back(0);
-                        cost_.push_back(5);
-                    }
-                    else if (rows[y][x] == '^')
-                    {
-                        cells_.push_back(0);
-                        cost_.push_back(3);
-                    }
-                    else if (rows[y][x] == '#')
-                    {
-                        cells_.push_back(1);
-                        cost_.push_back(1);
-                    }
+        for (int y = 0; y < height_; y++)
+        { // iterate over each row (i = row)
+            for (int x = 0; x < width_; x++)
+            { // iterate through current row and push_back cell (j = col)
+                if (rows[y][x] == '.')
+                {
+                    cells_.push_back(0);
+                    cost_.push_back(1);
+                }
+                else if (rows[y][x] == '~')
+                {
+                    cells_.push_back(0);
+                    cost_.push_back(5);
+                }
+                else if (rows[y][x] == '^')
+                {
+                    cells_.push_back(0);
+                    cost_.push_back(3);
+                }
+                else if (rows[y][x] == '#')
+                {
+                    cells_.push_back(1);
+                    cost_.push_back(1);
                 }
             }
+        }
 
-            min_cost_ = min_free_cost(cells_, cost_);
+        min_cost_ = min_free_cost(cells_, cost_);
 
-            assert(cells_.size() == cost_.size());
-            assert(min_cost_ >= 1);
+        assert(cells_.size() == cost_.size());
+        assert(min_cost_ >= 1);
     }
 
     // row-major: walk across a row, then down. MEMORIZE this!
@@ -120,7 +126,6 @@ namespace planning
     {
         return cost_[index(c)];
     }
-
 
     // Non-member functions:
     void print_grid(const GridMap &m)
@@ -221,10 +226,7 @@ namespace planning
     {
 
         // Assign four-connected offsets
-        static constexpr std::array<Cell, 8> kOffsets{{
-            {1, 0}, {-1, 0}, {0, 1}, {0, -1},
-            {1, 1}, {1, -1}, {-1, 1}, {-1, -1}
-        }};
+        static constexpr std::array<Cell, 8> kOffsets{{{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}}};
 
         // Init empty vector and reserve 4 cells
         std::vector<Cell> neighbors;
@@ -234,7 +236,7 @@ namespace planning
         for (const Cell &d : kOffsets)
         {
             const Cell n{c.x + d.x, c.y + d.y};
-            if (m.is_free(n))
+            if (m.is_free(n) && corner_clear(m, c, n))
             {
                 neighbors.push_back(n);
             }
@@ -242,7 +244,21 @@ namespace planning
         return neighbors;
     }
 
-    int edge_cost(const GridMap& m, Cell from, Cell to)
+    // singular corner cut prevention rule for both neighbors8 and edge_free
+    bool corner_clear(const GridMap &m, Cell from, Cell to)
+    {
+        const int dx = to.x - from.x;
+        const int dy = to.y - from.y;
+
+        // return true early for orthogonal cells
+        if (dx == 0 || dy == 0)
+            return true;
+
+        // check corresponding orthogonal cells, return result
+        return (m.is_free({from.x + dx, from.y}) && m.is_free({from.x, from.y + dy}));
+    }
+
+    int edge_cost(const GridMap &m, Cell from, Cell to)
     {
         const bool diag = (from.x != to.x) && (from.y != to.y);
         return (diag ? kDiag : kOrtho) * m.cost_at(to);
@@ -256,7 +272,7 @@ namespace planning
 
         for (std::size_t ci = 1; ci < path.size(); ci++)
         {
-            sum += edge_cost(m, path[ci-1], path[ci]);
+            sum += edge_cost(m, path[ci - 1], path[ci]);
         }
 
         return sum;
