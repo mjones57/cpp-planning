@@ -40,7 +40,7 @@ namespace
     std::vector<std::unique_ptr<Planner>> build_registry()
     {
         std::vector<std::unique_ptr<Planner>> registry;
-        for (const std::string &id : {
+        for (const char *id : {
                  "bfs",
                  "astar",
                  "weighted",

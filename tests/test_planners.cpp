@@ -123,7 +123,7 @@ TEST(Planners, HeuristicAdmissibleEverywhere)
             const std::vector<Cell> p = dijkstra(m, c, g);
             if (p.empty())
                 continue;
-            EXPECT_LE(heuristic(m, c, g), path_cost(m, p))
+            EXPECT_LE(heuristic(m, c, g) * kOrtho, path_cost(m, p))
                 << "heuristic overestimates at (" << x << "," << y << ")";
         }
     }
